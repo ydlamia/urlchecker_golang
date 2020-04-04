@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type result struct {
+type requestResult struct {
 	url    string
 	status string
 }
@@ -24,7 +24,8 @@ func main() {
 	// var results = make(map[string]string)	//make함수는 안에 선언된 map의 타입에 맞춰 map을 생성하고 빈 상태로 초기화해줌
 	// results["hello"] = "Hello"
 
-	c := make(chan result)
+	results := make(map[string]string)
+	c := make(chan requestResult)
 	urls := []string{
 		"https://www.airbnb.com",
 		"https://www.google.com",
@@ -32,7 +33,7 @@ func main() {
 		"https://www.naver.com",
 		"https://www.facebook.com",
 		"https://www.instagram.com",
-		"https://academy.nomadcoders.co/",
+		"https://academy.nomadcoders.co",
 		"https://www.abc.com",
 		"https://workingscorpion.com",
 	}
@@ -51,17 +52,23 @@ func main() {
 	fmt.Println("===============")
 
 	for i := 0; i < len(urls); i++ {
-		fmt.Println(<-c)
+		result := <-c
+		// fmt.Println(result)
+		results[result.url] = result.status
+	}
+
+	for url, status := range results {
+		fmt.Println(url, status)
 	}
 }
 
-func hitURL(url string, c chan<- result) {
+func hitURL(url string, c chan<- requestResult) {
 	resp, err := http.Get(url)
 	status := "OK"
 	if err != nil || resp.StatusCode >= 400 {
 		status = "Failed"
 	}
-	c <- result{
+	c <- requestResult{
 		url:    url,
 		status: status,
 	}
